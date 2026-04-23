@@ -1,0 +1,70 @@
+# This is a bundle definition for pipeline_update.
+bundle:
+  name: pipeline_update
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: The catalog to use
+  schema:
+    description: The schema to use
+
+resources:
+  jobs:
+    sample_job:
+      name: sample_job
+
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+
+      tasks:
+        - task_key: refresh_pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.sample_pipeline.id}
+
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: '4'
+
+  pipelines:
+    sample_pipeline:
+      name: sample_pipeline
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+      root_path: '../src/sample_pipeline'
+
+      libraries:
+        - glob:
+            include: ../src/sample_pipeline/transformations/**
+
+      environment:
+        dependencies:
+          - --editable ${workspace.file_path}
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: <dev-workspace-url>
+    variables:
+      catalog: my_catalog
+      schema: ${workspace.current_user.short_name}
+  prod:
+    mode: production
+    workspace:
+      host: <production-workspace-url>
+      root_path: /Workspace/Users/someone@example.com/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      catalog: my_catalog
+      schema: prod
+    permissions:
+      - user_name: someone@example.com
+        level: CAN_MANAGE
