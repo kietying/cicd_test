@@ -28,4 +28,5 @@ jobs:
       - uses: databricks/setup-cli@main
       - name: Update git folder
         # Set your workspace path and branch name here
-        run: databricks repos update /Workspace/<git-folder-path> --branch git-folder-cicd-example
+        run: databricks repos update /Workspace/<git-folder-path> --branch main
+        
